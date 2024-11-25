@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask & SQLite Enhanced Reference</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .code-block { padding: 8px; }
+            table { display: block; overflow-x: auto; }
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.3em;
+            margin-top: 1.5em;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .code-block {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        .note-block {
+            background: #fff3bf;
+            border-left: 4px solid #fab005;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.45;
+            overflow-x: auto;
+        }
+
+        .kw { color: #d73a49; }
+        .str { color: #032f62; }
+        .com { color: #6a737d; }
+        .fun { color: #6f42c1; }
+        .num { color: #005cc5; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #e1e4e8;
+            text-align: left;
+        }
+
+        th {
+            background: #f6f8fa;
+        }
+
+        .example-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        @media (max-width: 600px) {
+            .example-pair {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .side-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flask & SQLite Enhanced Reference Sheet</h1>
+    
+    <div class="section">
+        <h2>Getting Data from Request (Quick Reference)</h2>
+        <!-- Previous code block remains the same -->
+        <div class="code-block">
+<pre><span class="com"># Get form data</span>
+title = request.form.get(<span class="str">'title'</span>)  <span class="com"># Returns None if not found</span>
+title = request.form[<span class="str">'title'</span>]     <span class="com"># Raises KeyError if not found</span>
+
+<span class="com"># Get URL parameters (/book?id=123)</span>
+book_id = request.args.get(<span class="str">'id'</span>)
+
+<span class="com"># Get URL path parameters (/book/123)</span>
+book_id = book_id  <span class="com"># From route parameter</span></pre>
+        </div>
+
+        <h3>Detailed Examples</h3>
+        
+        <h4>1. Form Data (POST request)</h4>
+        <div class="example-pair">
+            <div>
+                <div class="side-label">Client Side (HTML Form)</div>
+                <div class="code-block">
+<pre><span class="kw">&lt;form</span> <span class="fun">method=</span><span class="str">"POST"</span> <span class="fun">action=</span><span class="str">"/add_book"</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;input</span> <span class="fun">type=</span><span class="str">"text"</span> 
+           <span class="fun">name=</span><span class="str">"title"</span> 
+           <span class="fun">required</span><span class="kw">&gt;</span>
+    <span class="kw">&lt;input</span> <span class="fun">type=</span><span class="str">"submit"</span><span class="kw">&gt;</span>
+<span class="kw">&lt;/form&gt;</span></pre>
+                </div>
+            </div>
+            <div>
+                <div class="side-label">Server Side (Flask Route)</div>
+                <div class="code-block">
+<pre><span class="dec">@app</span>.route(<span class="str">'/add_book'</span>, methods=[<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fun">add_book</span>():
+    title = request.form.get(<span class="str">'title'</span>)</pre>
+                </div>
+            </div>
+        </div>
+
+        <h4>2. URL Parameters</h4>
+        <div class="example-pair">
+            <div>
+                <div class="side-label">Client Side (Fetch API)</div>
+                <div class="code-block">
+<pre><span class="com">// Using query parameters</span>
+fetch(<span class="str">'/books?status=available'</span>)
+
+<span class="com">// Using route parameters</span>
+fetch(<span class="str">'/books/123'</span>)</pre>
+                </div>
+            </div>
+            <div>
+                <div class="side-label">Server Side (Flask Routes)</div>
+                <div class="code-block">
+<pre><span class="com"># For query parameters (?status=)</span>
+<span class="dec">@app</span>.route(<span class="str">'/books'</span>)
+<span class="kw">def</span> <span class="fun">list_books</span>():
+    status = request.args.get(<span class="str">'status'</span>)
+
+<span class="com"># For route parameters (/books/123)</span>
+<span class="dec">@app</span>.route(<span class="str">'/books/&lt;int:book_id&gt;'</span>)
+<span class="kw">def</span> <span class="fun">get_book</span>(book_id):
+    <span class="com"># book_id is already an int!</span></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Database Schema and Operations</h2>
+
+        <table>
+            <tr>
+                <th>Table</th>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td rowspan="4">books</td>
+                <td>id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY</td>
+            </tr>
+            <tr>
+                <td>title</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+            </tr>
+            <tr>
+                <td>isbn</td>
+                <td>TEXT</td>
+                <td>UNIQUE</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>DEFAULT 'available'</td>
+            </tr>
+        </table>
+
+        <!-- Previous database operations code blocks remain here -->
+    </div>
+
+    <div class="section">
+        <h2>Common Response Patterns</h2>
+        
+        <div class="note-block">
+            Choose any response style you prefer! All of these are valid approaches.
+            Pick the one that makes the most sense for your specific route.
+        </div>
+
+        <div class="code-block">
+<pre><span class="com"># Style 1: Simple string responses</span>
+<span class="kw">return</span> <span class="str">"Book added successfully"</span>, <span class="num">200</span>
+
+<span class="com"># Style 2: JSON with message</span>
+<span class="kw">return</span> {<span class="str">'message'</span>: <span class="str">'Success'</span>}, <span class="num">200</span>
+
+<span class="com"># Style 3: JSON with data</span>
+<span class="kw">return</span> {
+    <span class="str">'book_id'</span>: book_id,
+    <span class="str">'title'</span>: title
+}, <span class="num">200</span>
+
+<span class="com"># Style 4: JSON with message and data</span>
+<span class="kw">return</span> {
+    <span class="str">'message'</span>: <span class="str">'Book added'</span>,
+    <span class="str">'data'</span>: {<span class="str">'id'</span>: book_id}
+}, <span class="num">200</span></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Input Validation and Truthy/Falsy Values</h2>
+        
+        <div class="note-block">
+            When we write <code>if not title</code>, Python considers these values as False:
+            <ul>
+                <li>None (what we get from request.form.get() if field missing)</li>
+                <li>Empty string ""</li>
+                <li>Empty list []</li>
+                <li>Zero 0</li>
+            </ul>
+        </div>
+
+        <div class="code-block">
+<pre><span class="com"># These are equivalent:</span>
+<span class="kw">if not</span> title <span class="kw">or not</span> isbn:
+    <span class="kw">return</span> <span class="str">"Missing fields"</span>
+
+<span class="com"># More explicit version:</span>
+<span class="kw">if</span> title <span class="kw">is</span> <span class="kw">None or</span> title == <span class="str">""</span> <span class="kw">or</span> \
+   isbn <span class="kw">is</span> <span class="kw">None or</span> isbn == <span class="str">""</span>:
+    <span class="kw">return</span> <span class="str">"Missing fields"</span></pre>
+        </div>
+    </div>
+
+</body>
+</html>
